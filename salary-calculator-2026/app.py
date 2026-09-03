@@ -1,3 +1,5 @@
+import base64
+
 import streamlit as st
 
 from calculator import pay_scale
@@ -256,14 +258,22 @@ if result:
             st.session_state.pdf_bytes = build_pdf(result, "en")  # PDF is always generated in English
             st.rerun()
     else:
-        st.download_button(
-            f"📄 {L('download_pdf')}",
-            data=st.session_state.pdf_bytes,
-            file_name="salary_report_2026.pdf",
-            mime="application/pdf",
-            type="primary",
-            use_container_width=True,
-            key="pdf_download",
+        # NOTE: intentionally NOT using st.download_button here. It round-trips
+        # through Streamlit's server and triggers a full app rerun on click,
+        # which can race with the file being served — repeated clicks can then
+        # download a stale/incomplete file under an internal hash filename
+        # instead of "salary_report_2026.pdf". Embedding the PDF as a base64
+        # data URL lets the browser download directly from memory: no server
+        # request, no rerun, no race, regardless of how many times it's clicked.
+        b64_pdf = base64.b64encode(st.session_state.pdf_bytes).decode("ascii")
+        st.markdown(
+            f'<a href="data:application/pdf;base64,{b64_pdf}" '
+            f'download="salary_report_2026.pdf" '
+            f'style="display:block;width:100%;box-sizing:border-box;text-align:center;'
+            f'padding:0.55em 0;background-color:#ff4b4b;color:#ffffff;'
+            f'border-radius:0.5em;text-decoration:none;font-weight:600;'
+            f'font-family:inherit;">📄 {L("download_pdf")}</a>',
+            unsafe_allow_html=True,
         )
     st.caption("Note: the downloaded PDF report is always generated in English."
                if st.session_state.lang == "en" else

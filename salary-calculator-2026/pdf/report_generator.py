@@ -70,14 +70,6 @@ def build_pdf(result, lang: str) -> bytes:
 
     story = []
 
-    if not has_font:
-        story.append(Paragraph(
-            "NOTICE: Unicode font not found on server (assets/fonts/NotoSansBengali-Regular.ttf missing). "
-            "This PDF is rendered with a fallback font and Bengali text may not display correctly.",
-            ParagraphStyle("Warn", parent=styles["Normal"], fontName="Helvetica-Bold", fontSize=9, textColor=colors.red)
-        ))
-        story.append(Spacer(1, 6))
-
     # English PDFs use clean, English-only wording (the shared translation
     # strings embed the original Bengali gazette title, which is correct for
     # the Bengali UI/PDF but is not wanted in an English-only report).
